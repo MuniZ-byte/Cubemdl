@@ -2,41 +2,40 @@ cubes:
 - name: order_items
   sql_table: ecommerce.order_items
   description: This data cube represents the order items within an ecommerce platform,
-    detailing the products purchased, associated sellers, pricing, and shipping information
-    for each order.
+    detailing the products, sellers, prices, and shipping information associated with
+    each order.
   measures:
   - name: count
     type: count
-    description: count → "Total number of records in the order_items table"
+    description: count → "Total number of records in the order items table."
   - name: count_distinct
     sql: order_id
     type: count_distinct
-    description: 'count_distinct_order_id: "Total unique order IDs in the order_items
-      table"'
+    description: count_distinct_order_id → "Total unique order IDs in the dataset"
   - name: sum_price
     sql: price
     type: sum
-    description: 'sum_price: Total monetary value of all items in orders.'
+    description: sum_price → "Total monetary value of all items sold"
     format: currency
   - name: avg_price
     sql: price
     type: avg
-    description: '"Average price of items sold in orders"'
+    description: '"Average price of items in orders"'
     format: currency
   - name: min_price
     sql: price
     type: min
-    description: '"Lowest price of products in orders."'
+    description: 'min_price: "Lowest price of products in orders"'
     format: currency
   - name: max_price
     sql: price
     type: max
-    description: max_price → "Highest price of an item sold"
+    description: 'max_price: "Highest price of items sold in orders."'
     format: currency
   - name: sum_freight_value
     sql: freight_value
     type: sum
-    description: Total monetary value of shipping costs for all orders.
+    description: '"Total freight cost for all orders shipped"'
     format: currency
   - name: avg_freight_value
     sql: freight_value
@@ -46,12 +45,12 @@ cubes:
   - name: min_freight_value
     sql: freight_value
     type: min
-    description: Minimum freight cost for orders in the dataset.
+    description: Minimum freight cost for each order item.
     format: currency
   - name: max_freight_value
     sql: freight_value
     type: max
-    description: max_freight_value → "Highest shipping cost for individual orders"
+    description: max_freight_value → "Highest shipping cost for an order"
     format: currency
   dimensions:
   - name: order_id
@@ -71,7 +70,7 @@ cubes:
   - name: seller_id
     sql: seller_id
     type: string
-    description: '"Seller identification code for order items"'
+    description: '"Identifier for the seller of the order item."'
   - name: shipping_limit_date
     sql: shipping_limit_date
     type: time
@@ -92,11 +91,11 @@ cubes:
   - name: price
     sql: price
     type: number
-    description: '"Price of an item in the order"'
+    description: '"Price of an item in an order"'
   - name: freight_value
     sql: freight_value
     type: number
-    description: Shipping cost for each order item.
+    description: Shipping cost for an order item.
   joins:
   - name: orders
     relationship: many_to_one

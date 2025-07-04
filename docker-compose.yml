@@ -1,35 +1,30 @@
+version: '3.8'
+
 services:
   cube:
     image: cubejs/cube:latest
     ports:
-      - "4000:4000"
-      - "15432:15432"
-    env_file:
-      - .env
+      - "4000:4000"     # Cube.dev web UI and REST API
+      - "15432:15432"   # SQL API (PostgreSQL compatible)
     environment:
-      - CUBEJS_DEV_MODE=${CUBEJS_DEV_MODE:-true}
-      - CUBEJS_API_SECRET=${CUBEJS_API_SECRET:-QhmD8499+6}
+      - CUBEJS_DEV_MODE=true
+      - CUBEJS_API_SECRET=demo-secret-key-12345
       - CUBEJS_CACHE_AND_QUEUE_DRIVER=memory
-      - CUBEJS_DB_TYPE=${CUBEJS_DB_TYPE:-postgres}
-      - CUBEJS_DB_HOST=${CUBEJS_DB_HOST}
-      - CUBEJS_DB_PORT=${CUBEJS_DB_PORT:-5432}
-      - CUBEJS_DB_NAME=${CUBEJS_DB_NAME}
-      - CUBEJS_DB_USER=${CUBEJS_DB_USER}
-      - CUBEJS_DB_PASS=${CUBEJS_DB_PASS}
-      - CUBEJS_WEB_SOCKETS=${CUBEJS_WEB_SOCKETS:-true}
-      - PYTHONPATH=${PYTHONPATH:-./model}
-      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - CUBEJS_DB_TYPE=postgres
+      - CUBEJS_DB_HOST=172.19.215.172
+      - CUBEJS_DB_PORT=5432
+      - CUBEJS_DB_NAME=ecommerce_db
+      - CUBEJS_DB_USER=admin
+      - CUBEJS_DB_PASS=admin123
+      - CUBEJS_DB_SCHEMA=ecommerce
+      - CUBEJS_WEB_SOCKETS=true
+      # SQL API Configuration
+      - CUBEJS_PG_SQL_PORT=15432
+      - CUBEJS_SQL_USER=cube
+      - CUBEJS_SQL_PASSWORD=password
+      # Additional settings
+      - CUBEJS_SCHEMA_PATH=model
     volumes:
-      - .:/cube/conf
-    depends_on:
-      - redis
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-
-volumes:
-  redis_data:
+      - ./model:/cube/conf/model:ro
+      - ./package.json:/cube/conf/package.json:ro
+    restart: unless-stopped

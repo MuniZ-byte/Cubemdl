@@ -1,21 +1,23 @@
 cubes:
 - name: geolocation
   sql_table: ecommerce.geolocation
-  description: This data cube provides geolocation information, including zip code,
-    latitude, longitude, city, and state, to help optimize logistics and target marketing
-    efforts for an ecommerce business based on customer locations.
+  description: The geolocation table in the ecommerce database captures the geographic
+    details (zip code, latitude, longitude, city, and state) of customer locations,
+    enabling businesses to analyze and optimize their distribution network and target
+    marketing efforts effectively.
   measures:
   - name: count
     type: count
-    description: count_records → "Total number of geolocation data entries"
+    description: count_records → "Total number of records in geolocation table"
   - name: count_distinct
     sql: geolocation_zip_code_prefix
     type: count_distinct
-    description: count_distinct geolocation zip codes in the dataset.
+    description: 'count_distinct_geolocation_zip_code_prefix: "Number of unique zip
+      codes in geolocation data"'
   - name: sum_geolocation_lat
     sql: geolocation_lat
     type: sum
-    description: '"Total sum of geolocation latitude values in the dataset."'
+    description: '"Total sum of latitude values for geolocation data."'
   - name: avg_geolocation_lat
     sql: geolocation_lat
     type: avg
@@ -23,19 +25,19 @@ cubes:
   - name: min_geolocation_lat
     sql: geolocation_lat
     type: min
-    description: '"Minimum latitude of geolocation data captured."'
+    description: '"Lowest latitude value in geolocation data."'
   - name: max_geolocation_lat
     sql: geolocation_lat
     type: max
-    description: '"Maximum latitude value of geolocation data points."'
+    description: '"Maximum latitude of geolocation data points captured."'
   - name: sum_geolocation_lng
     sql: geolocation_lng
     type: sum
-    description: '"Total sum of longitude values for geolocation data."'
+    description: Total sum of longitude values for geolocation data points.
   - name: avg_geolocation_lng
     sql: geolocation_lng
     type: avg
-    description: Average longitude of geolocation data points in the default domain.
+    description: '"Average longitude of geolocation data points."'
   - name: min_geolocation_lng
     sql: geolocation_lng
     type: min
@@ -43,17 +45,17 @@ cubes:
   - name: max_geolocation_lng
     sql: geolocation_lng
     type: max
-    description: '"Maximum longitude of geolocation data points collected."'
+    description: max_geolocation_lng → "Highest longitude value in geolocation data"
   dimensions:
   - name: geolocation_zip_code_prefix
     sql: geolocation_zip_code_prefix
     type: string
-    description: '"Geographical area zip code prefix"'
+    description: '"Geographic area zip code prefix"'
     primary_key: true
   - name: geolocation_lat
     sql: geolocation_lat
     type: number
-    description: Latitude coordinate for geolocation data.
+    description: Latitude coordinate of a geographical location.
   - name: geolocation_lng
     sql: geolocation_lng
     type: number
@@ -61,11 +63,11 @@ cubes:
   - name: geolocation_city
     sql: geolocation_city
     type: string
-    description: City where geolocation data is collected.
+    description: City where geolocation data is recorded.
   - name: geolocation_state
     sql: geolocation_state
     type: string
-    description: State where geolocation data is located.
+    description: '"State location of geolocation data"'
   segments:
   - name: active
     sql: '{CUBE}.geolocation_state = ''active'''

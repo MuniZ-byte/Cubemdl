@@ -1,9 +1,9 @@
 cubes:
 - name: order_payments
   sql_table: ecommerce.order_payments
-  description: The "order_payments" data cube provides insights into the various payment
-    methods, installment plans, and payment values associated with orders in an ecommerce
-    platform, enabling analysis of customer payment preferences and purchase behavior.
+  description: This data cube represents payment details for orders in an ecommerce
+    platform, including payment method, installment information, and payment values,
+    enabling analysis of payment trends and customer behavior.
   measures:
   - name: count
     type: count
@@ -15,11 +15,11 @@ cubes:
   - name: sum_payment_installments
     sql: payment_installments
     type: sum
-    description: '"Total number of payment installments made for orders"'
+    description: '"Total number of payment installments made for orders."'
   - name: avg_payment_installments
     sql: payment_installments
     type: avg
-    description: '"Average number of payment installments per order"'
+    description: Average number of payment installments made per order.
   - name: min_payment_installments
     sql: payment_installments
     type: min
@@ -37,12 +37,12 @@ cubes:
   - name: avg_payment_value
     sql: payment_value
     type: avg
-    description: Average value of payments made per order in the default domain.
+    description: Average value of payments made for orders in the default domain.
     format: currency
   - name: min_payment_value
     sql: payment_value
     type: min
-    description: Minumum payment value made by customers for orders in default domain.
+    description: 'min_payment_value: "Minimum payment amount made for orders."'
     format: currency
   - name: max_payment_value
     sql: payment_value
@@ -53,21 +53,21 @@ cubes:
   - name: order_id
     sql: order_id
     type: string
-    description: '"Unique identifier for each order"'
+    description: '"Identifier for each order placed"'
     primary_key: true
   - name: payment_sequential
     sql: payment_sequential
     type: number
-    description: Payment sequence number for order transactions.
+    description: Payment sequence number for each order.
     primary_key: true
   - name: payment_type
     sql: payment_type
     type: string
-    description: Type of payment used for an order.
+    description: Type of payment method used for an order.
   - name: payment_installments
     sql: payment_installments
     type: number
-    description: Number of payment installments for an order.
+    description: '"Number of payment installments for an order"'
   - name: payment_value
     sql: payment_value
     type: number

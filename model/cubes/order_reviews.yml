@@ -1,13 +1,13 @@
 cubes:
 - name: order_reviews
   sql_table: ecommerce.order_reviews
-  description: The "order_reviews" table in the ecommerce database captures customer
-    reviews and ratings for orders, providing insights into customer satisfaction
+  description: The "order_reviews" table captures customer reviews and ratings for
+    orders placed on an ecommerce platform, providing insights into customer satisfaction
     and feedback on products and services.
   measures:
   - name: count
     type: count
-    description: count_reviews → "Total number of reviews received"
+    description: count_reviews → "Total number of reviews received for orders"
   - name: count_distinct
     sql: review_id
     type: count_distinct
@@ -19,7 +19,8 @@ cubes:
   - name: min_review_score
     sql: review_score
     type: min
-    description: 'min_review_score: "Lowest review score given by customers"'
+    description: 'min_review_score: Lowest review score given by customers for orders
+      received.'
   - name: max_review_score
     sql: review_score
     type: max
@@ -33,20 +34,20 @@ cubes:
   - name: order_id
     sql: order_id
     type: string
-    description: '"Identifier for each order placed"'
+    description: '"Unique identifier for each order"'
     primary_key: true
   - name: review_score
     sql: review_score
     type: number
-    description: '"Rating given by customer for order experience"'
+    description: '"Rating given by customer for order satisfaction"'
   - name: review_comment_title
     sql: review_comment_title
     type: string
-    description: Title of the review comment given by customer.
+    description: '"Title of review comment"'
   - name: review_comment_message
     sql: review_comment_message
     type: string
-    description: '"Review comments left by customers"'
+    description: '"Customer review comments on orders"'
   - name: review_creation_date
     sql: review_creation_date
     type: time
@@ -73,7 +74,7 @@ cubes:
   - name: review_answer_timestamp
     sql: review_answer_timestamp
     type: time
-    description: '"Timestamp of response to review"'
+    description: '"Timestamp of review response"'
     granularities:
     - *id001
     - *id002

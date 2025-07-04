@@ -1,10 +1,9 @@
 cubes:
 - name: orders
   sql_table: ecommerce.orders
-  description: The "orders" data cube in the ecommerce database represents the lifecycle
-    of customer orders, including purchase timestamps, approval status, delivery dates,
-    and estimated delivery times, providing insights into order fulfillment efficiency
-    and customer satisfaction.
+  description: This data cube represents the order fulfillment process for an ecommerce
+    business, tracking key details such as order status, purchase timestamps, delivery
+    dates, and estimated delivery times for each customer's order.
   measures:
   - name: count
     type: count
@@ -12,7 +11,7 @@ cubes:
   - name: count_distinct
     sql: order_id
     type: count_distinct
-    description: count_distinct_order_id → "Total unique orders placed"
+    description: count_distinct_order_id → "Total unique order IDs in the dataset"
   dimensions:
   - name: order_id
     sql: order_id
@@ -22,11 +21,11 @@ cubes:
   - name: customer_id
     sql: customer_id
     type: string
-    description: '"Unique identifier for each customer"'
+    description: customer_id → "Unique customer identifier"
   - name: order_status
     sql: order_status
     type: string
-    description: Order fulfillment status of an order.
+    description: '"Status of the order in the process"'
   - name: order_purchase_timestamp
     sql: order_purchase_timestamp
     type: time
@@ -64,7 +63,7 @@ cubes:
   - name: order_delivered_carrier_date
     sql: order_delivered_carrier_date
     type: time
-    description: '"Date order delivered by carrier"'
+    description: '"Date when order was delivered by carrier"'
     granularities:
     - *id001
     - *id002

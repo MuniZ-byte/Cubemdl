@@ -1,0 +1,12 @@
+{
+    "name": "cubemdl-app",
+    "version": "1.0.0",
+    "description": "Cube.dev application with LLM-generated models",
+    "main": "index.js",
+    "scripts": {
+        "dev": "cube run"
+    },
+    "dependencies": {
+        "@cubejs-backend/postgres-driver": "^0.35.0"
+    }
+}

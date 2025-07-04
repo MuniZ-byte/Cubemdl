@@ -1,9 +1,9 @@
 cubes:
 - name: product_category_name_translations
   sql_table: ecommerce.product_category_name_translations
-  description: This data cube represents a translation mapping between product category
-    names in Portuguese and their corresponding English names, providing a valuable
-    resource for cross-language analysis and reporting in the ecommerce domain.
+  description: This data cube represents translated product category names in English
+    for an ecommerce platform, facilitating cross-language analysis and decision-making
+    for product categorization and marketing strategies.
   measures:
   - name: count
     type: count
@@ -12,8 +12,8 @@ cubes:
   - name: count_distinct
     sql: product_category_name
     type: count_distinct
-    description: count_distinct measures unique product categories in the product
-      category name translations table.
+    description: count_distinct → "Number of unique product categories in translations
+      table"
   dimensions:
   - name: product_category_name
     sql: product_category_name

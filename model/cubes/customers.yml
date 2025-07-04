@@ -1,0 +1,41 @@
+cubes:
+- name: customers
+  sql_table: ecommerce.customers
+  description: Data cube for Customers analysis
+  measures:
+  - name: count
+    type: count
+    description: Total number of records
+  - name: count_distinct
+    sql: customer_id
+    type: count_distinct
+    description: Count of unique records
+  dimensions:
+  - name: customer_id
+    sql: customer_id
+    type: string
+    description: Customer Id dimension
+    primary_key: true
+  - name: customer_unique_id
+    sql: customer_unique_id
+    type: string
+    description: Customer Unique Id dimension
+  - name: customer_zip_code_prefix
+    sql: customer_zip_code_prefix
+    type: string
+    description: Customer Zip Code Prefix dimension
+  - name: customer_city
+    sql: customer_city
+    type: string
+    description: Customer City dimension
+  - name: customer_state
+    sql: customer_state
+    type: string
+    description: Customer State dimension
+  segments:
+  - name: active
+    sql: '{CUBE}.customer_state = ''active'''
+    description: Active records only
+  - name: inactive
+    sql: '{CUBE}.customer_state = ''inactive'''
+    description: Inactive records only

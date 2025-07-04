@@ -1,0 +1,35 @@
+services:
+  cube:
+    image: cubejs/cube:latest
+    ports:
+      - "4000:4000"
+      - "15432:15432"
+    env_file:
+      - .env
+    environment:
+      - CUBEJS_DEV_MODE=${CUBEJS_DEV_MODE:-true}
+      - CUBEJS_API_SECRET=${CUBEJS_API_SECRET:-QhmD8499+6}
+      - CUBEJS_CACHE_AND_QUEUE_DRIVER=memory
+      - CUBEJS_DB_TYPE=${CUBEJS_DB_TYPE:-postgres}
+      - CUBEJS_DB_HOST=${CUBEJS_DB_HOST}
+      - CUBEJS_DB_PORT=${CUBEJS_DB_PORT:-5432}
+      - CUBEJS_DB_NAME=${CUBEJS_DB_NAME}
+      - CUBEJS_DB_USER=${CUBEJS_DB_USER}
+      - CUBEJS_DB_PASS=${CUBEJS_DB_PASS}
+      - CUBEJS_WEB_SOCKETS=${CUBEJS_WEB_SOCKETS:-true}
+      - PYTHONPATH=${PYTHONPATH:-./model}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+    volumes:
+      - .:/cube/conf
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:

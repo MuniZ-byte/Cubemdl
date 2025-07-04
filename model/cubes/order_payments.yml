@@ -1,0 +1,59 @@
+cubes:
+- name: order_payments
+  sql_table: ecommerce.order_payments
+  description: Data cube for Order Payments analysis
+  measures:
+  - name: count
+    type: count
+    description: Total number of records
+  - name: count_distinct
+    sql: order_id
+    type: count_distinct
+    description: Count of unique records
+  - name: sum_payment_value
+    sql: payment_value
+    type: sum
+    description: Sum of payment_value
+    format: currency
+  - name: avg_payment_value
+    sql: payment_value
+    type: avg
+    description: Avg of payment_value
+    format: currency
+  - name: min_payment_value
+    sql: payment_value
+    type: min
+    description: Min of payment_value
+    format: currency
+  - name: max_payment_value
+    sql: payment_value
+    type: max
+    description: Max of payment_value
+    format: currency
+  dimensions:
+  - name: order_id
+    sql: order_id
+    type: string
+    description: Order Id dimension
+    primary_key: true
+  - name: payment_sequential
+    sql: payment_sequential
+    type: number
+    description: Payment Sequential dimension
+    primary_key: true
+  - name: payment_type
+    sql: payment_type
+    type: string
+    description: Payment Type dimension
+  - name: payment_installments
+    sql: payment_installments
+    type: number
+    description: Payment Installments dimension
+  - name: payment_value
+    sql: payment_value
+    type: number
+    description: Payment Value dimension
+  joins:
+  - name: orders
+    relationship: many_to_one
+    sql: '{CUBE}.order_id = {orders.order_id}'

@@ -1,0 +1,13 @@
+views:
+- name: dimension_catalog
+  description: Catalog of all dimensional data
+  cubes:
+  - join_path: orders
+    includes: '*'
+    prefix: true
+  - join_path: product_category_name_translations
+    includes: '*'
+    prefix: true
+  - join_path: products
+    includes: '*'
+    prefix: true

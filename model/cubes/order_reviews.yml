@@ -1,0 +1,98 @@
+cubes:
+- name: order_reviews
+  sql_table: ecommerce.order_reviews
+  description: Data cube for Order Reviews analysis
+  measures:
+  - name: count
+    type: count
+    description: Total number of records
+  - name: count_distinct
+    sql: review_id
+    type: count_distinct
+    description: Count of unique records
+  - name: avg_review_score
+    sql: review_score
+    type: avg
+    description: Avg of review_score
+    format: percent
+  - name: min_review_score
+    sql: review_score
+    type: min
+    description: Min of review_score
+    format: percent
+  - name: max_review_score
+    sql: review_score
+    type: max
+    description: Max of review_score
+    format: percent
+  dimensions:
+  - name: review_id
+    sql: review_id
+    type: string
+    description: Review Id dimension
+    primary_key: true
+  - name: order_id
+    sql: order_id
+    type: string
+    description: Order Id dimension
+    primary_key: true
+  - name: review_score
+    sql: review_score
+    type: number
+    description: Review Score dimension
+  - name: review_comment_title
+    sql: review_comment_title
+    type: string
+    description: Review Comment Title dimension
+  - name: review_comment_message
+    sql: review_comment_message
+    type: string
+    description: Review Comment Message dimension
+  - name: review_creation_date
+    sql: review_creation_date
+    type: time
+    description: Review Creation Date dimension
+    granularities:
+    - &id001
+      name: hour
+      interval: 1 hour
+    - &id002
+      name: day
+      interval: 1 day
+    - &id003
+      name: week
+      interval: 1 week
+    - &id004
+      name: month
+      interval: 1 month
+    - &id005
+      name: quarter
+      interval: 1 quarter
+    - &id006
+      name: year
+      interval: 1 year
+  - name: review_answer_timestamp
+    sql: review_answer_timestamp
+    type: time
+    description: Review Answer Timestamp dimension
+    granularities:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - *id005
+    - *id006
+  segments:
+  - name: recent
+    sql: '{CUBE}.review_answer_timestamp >= CURRENT_DATE - INTERVAL ''30 days'''
+    description: Records from last 30 days
+  - name: this_year
+    sql: '{CUBE}.review_answer_timestamp >= DATE_TRUNC(''year'', CURRENT_DATE)'
+    description: Records from current year
+  - name: this_month
+    sql: '{CUBE}.review_answer_timestamp >= DATE_TRUNC(''month'', CURRENT_DATE)'
+    description: Records from current month
+  joins:
+  - name: orders
+    relationship: many_to_one
+    sql: '{CUBE}.order_id = {orders.order_id}'

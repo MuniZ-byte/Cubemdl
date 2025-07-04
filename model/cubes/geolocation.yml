@@ -1,0 +1,41 @@
+cubes:
+- name: geolocation
+  sql_table: ecommerce.geolocation
+  description: Data cube for Geolocation analysis
+  measures:
+  - name: count
+    type: count
+    description: Total number of records
+  - name: count_distinct
+    sql: geolocation_zip_code_prefix
+    type: count_distinct
+    description: Count of unique records
+  dimensions:
+  - name: geolocation_zip_code_prefix
+    sql: geolocation_zip_code_prefix
+    type: string
+    description: Geolocation Zip Code Prefix dimension
+    primary_key: true
+  - name: geolocation_lat
+    sql: geolocation_lat
+    type: number
+    description: Geolocation Lat dimension
+  - name: geolocation_lng
+    sql: geolocation_lng
+    type: number
+    description: Geolocation Lng dimension
+  - name: geolocation_city
+    sql: geolocation_city
+    type: string
+    description: Geolocation City dimension
+  - name: geolocation_state
+    sql: geolocation_state
+    type: string
+    description: Geolocation State dimension
+  segments:
+  - name: active
+    sql: '{CUBE}.geolocation_state = ''active'''
+    description: Active records only
+  - name: inactive
+    sql: '{CUBE}.geolocation_state = ''inactive'''
+    description: Inactive records only

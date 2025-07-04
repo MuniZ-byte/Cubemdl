@@ -1,0 +1,20 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.black-formatter",
+    "ms-python.pylint",
+    "redhat.vscode-yaml",
+    "wholroyd.jinja",
+    "samuelcolvin.jinjahtml",
+    "ms-vscode.vscode-json",
+    "christian-kohler.path-intellisense",
+    "ms-vscode.vscode-typescript-next",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "ms-vscode.references-view",
+    "ms-vsliveshare.vsliveshare",
+    "github.copilot",
+    "ms-vscode.hexeditor",
+    "streetsidesoftware.code-spell-checker"
+  ]
+}

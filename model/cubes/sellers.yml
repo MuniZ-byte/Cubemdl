@@ -1,0 +1,37 @@
+cubes:
+- name: sellers
+  sql_table: ecommerce.sellers
+  description: Data cube for Sellers analysis
+  measures:
+  - name: count
+    type: count
+    description: Total number of records
+  - name: count_distinct
+    sql: seller_id
+    type: count_distinct
+    description: Count of unique records
+  dimensions:
+  - name: seller_id
+    sql: seller_id
+    type: string
+    description: Seller Id dimension
+    primary_key: true
+  - name: seller_zip_code_prefix
+    sql: seller_zip_code_prefix
+    type: string
+    description: Seller Zip Code Prefix dimension
+  - name: seller_city
+    sql: seller_city
+    type: string
+    description: Seller City dimension
+  - name: seller_state
+    sql: seller_state
+    type: string
+    description: Seller State dimension
+  segments:
+  - name: active
+    sql: '{CUBE}.seller_state = ''active'''
+    description: Active records only
+  - name: inactive
+    sql: '{CUBE}.seller_state = ''inactive'''
+    description: Inactive records only

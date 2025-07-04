@@ -1,0 +1,150 @@
+cubes:
+- name: products
+  sql_table: ecommerce.products
+  description: Data cube for Products analysis
+  measures:
+  - name: count
+    type: count
+    description: Total number of records
+  - name: count_distinct
+    sql: product_id
+    type: count_distinct
+    description: Count of unique records
+  - name: sum_product_name_length
+    sql: product_name_length
+    type: sum
+    description: Sum of product_name_length
+    format: number
+  - name: avg_product_name_length
+    sql: product_name_length
+    type: avg
+    description: Avg of product_name_length
+    format: number
+  - name: min_product_name_length
+    sql: product_name_length
+    type: min
+    description: Min of product_name_length
+    format: number
+  - name: max_product_name_length
+    sql: product_name_length
+    type: max
+    description: Max of product_name_length
+    format: number
+  - name: sum_description_length
+    sql: description_length
+    type: sum
+    description: Sum of description_length
+    format: number
+  - name: avg_description_length
+    sql: description_length
+    type: avg
+    description: Avg of description_length
+    format: number
+  - name: min_description_length
+    sql: description_length
+    type: min
+    description: Min of description_length
+    format: number
+  - name: max_description_length
+    sql: description_length
+    type: max
+    description: Max of description_length
+    format: number
+  - name: sum_product_weight_g
+    sql: product_weight_g
+    type: sum
+    description: Sum of product_weight_g
+    format: number
+  - name: avg_product_weight_g
+    sql: product_weight_g
+    type: avg
+    description: Avg of product_weight_g
+    format: number
+  - name: min_product_weight_g
+    sql: product_weight_g
+    type: min
+    description: Min of product_weight_g
+    format: number
+  - name: max_product_weight_g
+    sql: product_weight_g
+    type: max
+    description: Max of product_weight_g
+    format: number
+  - name: sum_product_height_cm
+    sql: product_height_cm
+    type: sum
+    description: Sum of product_height_cm
+    format: number
+  - name: avg_product_height_cm
+    sql: product_height_cm
+    type: avg
+    description: Avg of product_height_cm
+    format: number
+  - name: min_product_height_cm
+    sql: product_height_cm
+    type: min
+    description: Min of product_height_cm
+    format: number
+  - name: max_product_height_cm
+    sql: product_height_cm
+    type: max
+    description: Max of product_height_cm
+    format: number
+  - name: sum_product_width_cm
+    sql: product_width_cm
+    type: sum
+    description: Sum of product_width_cm
+    format: number
+  - name: avg_product_width_cm
+    sql: product_width_cm
+    type: avg
+    description: Avg of product_width_cm
+    format: number
+  - name: min_product_width_cm
+    sql: product_width_cm
+    type: min
+    description: Min of product_width_cm
+    format: number
+  - name: max_product_width_cm
+    sql: product_width_cm
+    type: max
+    description: Max of product_width_cm
+    format: number
+  dimensions:
+  - name: product_id
+    sql: product_id
+    type: string
+    description: Product Id dimension
+    primary_key: true
+  - name: product_category_name
+    sql: product_category_name
+    type: string
+    description: Product Category Name dimension
+  - name: product_name_length
+    sql: product_name_length
+    type: number
+    description: Product Name Length dimension
+  - name: description_length
+    sql: description_length
+    type: number
+    description: Description Length dimension
+  - name: product_photos_qty
+    sql: product_photos_qty
+    type: number
+    description: Product Photos Qty dimension
+  - name: product_weight_g
+    sql: product_weight_g
+    type: number
+    description: Product Weight G dimension
+  - name: product_lenght_cm
+    sql: product_lenght_cm
+    type: number
+    description: Product Lenght Cm dimension
+  - name: product_height_cm
+    sql: product_height_cm
+    type: number
+    description: Product Height Cm dimension
+  - name: product_width_cm
+    sql: product_width_cm
+    type: number
+    description: Product Width Cm dimension

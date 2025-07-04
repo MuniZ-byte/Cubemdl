@@ -1,0 +1,113 @@
+cubes:
+- name: orders
+  sql_table: ecommerce.orders
+  description: Data cube for Orders analysis
+  measures:
+  - name: count
+    type: count
+    description: Total number of records
+  - name: count_distinct
+    sql: order_id
+    type: count_distinct
+    description: Count of unique records
+  dimensions:
+  - name: order_id
+    sql: order_id
+    type: string
+    description: Order Id dimension
+    primary_key: true
+  - name: customer_id
+    sql: customer_id
+    type: string
+    description: Customer Id dimension
+  - name: order_status
+    sql: order_status
+    type: string
+    description: Order Status dimension
+  - name: order_purchase_timestamp
+    sql: order_purchase_timestamp
+    type: time
+    description: Order Purchase Timestamp dimension
+    granularities:
+    - &id001
+      name: hour
+      interval: 1 hour
+    - &id002
+      name: day
+      interval: 1 day
+    - &id003
+      name: week
+      interval: 1 week
+    - &id004
+      name: month
+      interval: 1 month
+    - &id005
+      name: quarter
+      interval: 1 quarter
+    - &id006
+      name: year
+      interval: 1 year
+  - name: order_approved_at
+    sql: order_approved_at
+    type: time
+    description: Order Approved At dimension
+    granularities:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - *id005
+    - *id006
+  - name: order_delivered_carrier_date
+    sql: order_delivered_carrier_date
+    type: time
+    description: Order Delivered Carrier Date dimension
+    granularities:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - *id005
+    - *id006
+  - name: order_delivered_customer_date
+    sql: order_delivered_customer_date
+    type: time
+    description: Order Delivered Customer Date dimension
+    granularities:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - *id005
+    - *id006
+  - name: order_estimated_delivery_date
+    sql: order_estimated_delivery_date
+    type: time
+    description: Order Estimated Delivery Date dimension
+    granularities:
+    - *id001
+    - *id002
+    - *id003
+    - *id004
+    - *id005
+    - *id006
+  segments:
+  - name: active
+    sql: '{CUBE}.order_status = ''active'''
+    description: Active records only
+  - name: inactive
+    sql: '{CUBE}.order_status = ''inactive'''
+    description: Inactive records only
+  - name: recent
+    sql: '{CUBE}.order_purchase_timestamp >= CURRENT_DATE - INTERVAL ''30 days'''
+    description: Records from last 30 days
+  - name: this_year
+    sql: '{CUBE}.order_purchase_timestamp >= DATE_TRUNC(''year'', CURRENT_DATE)'
+    description: Records from current year
+  - name: this_month
+    sql: '{CUBE}.order_purchase_timestamp >= DATE_TRUNC(''month'', CURRENT_DATE)'
+    description: Records from current month
+  joins:
+  - name: customers
+    relationship: many_to_one
+    sql: '{CUBE}.customer_id = {customers.customer_id}'

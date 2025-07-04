@@ -1,0 +1,106 @@
+cubes:
+- name: order_items
+  sql_table: ecommerce.order_items
+  description: Data cube for Order Items analysis
+  measures:
+  - name: count
+    type: count
+    description: Total number of records
+  - name: count_distinct
+    sql: order_id
+    type: count_distinct
+    description: Count of unique records
+  - name: sum_price
+    sql: price
+    type: sum
+    description: Sum of price
+    format: currency
+  - name: avg_price
+    sql: price
+    type: avg
+    description: Avg of price
+    format: currency
+  - name: min_price
+    sql: price
+    type: min
+    description: Min of price
+    format: currency
+  - name: max_price
+    sql: price
+    type: max
+    description: Max of price
+    format: currency
+  - name: sum_freight_value
+    sql: freight_value
+    type: sum
+    description: Sum of freight_value
+    format: currency
+  - name: avg_freight_value
+    sql: freight_value
+    type: avg
+    description: Avg of freight_value
+    format: currency
+  - name: min_freight_value
+    sql: freight_value
+    type: min
+    description: Min of freight_value
+    format: currency
+  - name: max_freight_value
+    sql: freight_value
+    type: max
+    description: Max of freight_value
+    format: currency
+  dimensions:
+  - name: order_id
+    sql: order_id
+    type: string
+    description: Order Id dimension
+    primary_key: true
+  - name: order_item_id
+    sql: order_item_id
+    type: number
+    description: Order Item Id dimension
+    primary_key: true
+  - name: product_id
+    sql: product_id
+    type: string
+    description: Product Id dimension
+  - name: seller_id
+    sql: seller_id
+    type: string
+    description: Seller Id dimension
+  - name: shipping_limit_date
+    sql: shipping_limit_date
+    type: time
+    description: Shipping Limit Date dimension
+    granularities:
+    - name: hour
+      interval: 1 hour
+    - name: day
+      interval: 1 day
+    - name: week
+      interval: 1 week
+    - name: month
+      interval: 1 month
+    - name: quarter
+      interval: 1 quarter
+    - name: year
+      interval: 1 year
+  - name: price
+    sql: price
+    type: number
+    description: Price dimension
+  - name: freight_value
+    sql: freight_value
+    type: number
+    description: Freight Value dimension
+  joins:
+  - name: orders
+    relationship: many_to_one
+    sql: '{CUBE}.order_id = {orders.order_id}'
+  - name: products
+    relationship: many_to_one
+    sql: '{CUBE}.product_id = {products.product_id}'
+  - name: sellers
+    relationship: many_to_one
+    sql: '{CUBE}.seller_id = {sellers.seller_id}'

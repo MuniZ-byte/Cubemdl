@@ -1,0 +1,9 @@
+# PostgreSQL to Cube.dev YAML Generator
+# Core Dependencies
+sqlalchemy>=2.0.0
+psycopg2-binary>=2.9.0
+python-dotenv>=1.0.0
+PyYAML>=6.0
+
+# Optional: LLM-enhanced descriptions
+openai>=1.0.0

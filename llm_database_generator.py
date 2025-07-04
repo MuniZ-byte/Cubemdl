@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
-LLM-Enhanced PostgreSQL to Cube.dev Generator
+LLM-Enhanced Universal Database to Cube.dev Generator
 
 This enhanced version uses OpenAI/LLM to generate meaningful descriptions
 for cubes, measures, and dimensions based on actual database content.
+
+Supports multiple database engines:
+- PostgreSQL, SQLite, MySQL, Microsoft SQL Server
 """
 
 import os
@@ -14,8 +17,8 @@ from typing import Dict, List, Any, Optional
 from pathlib import Path
 
 # Import our modules
-from enhanced_postgres_to_cubedev import EnhancedCubeGenerator, DatabaseConfig
-from postgres_to_cubedev import PostgreSQLIntrospector, TableInfo
+from enhanced_database_to_cubedev import EnhancedCubeGenerator, DatabaseConfig
+from database_to_cubedev import DatabaseIntrospector, DatabaseConfig, TableInfo
 from llm_descriptions import EnhancedDescriptionService, TableContext
 
 # Configure logging
@@ -198,7 +201,7 @@ class LLMEnhancedCubeGenerator(EnhancedCubeGenerator):
         # Default measures for numeric columns
         return ['sum', 'avg', 'min', 'max']
     
-    def process_database_with_llm(self, introspector: PostgreSQLIntrospector, tables: List[str] = None) -> Dict[str, Any]:
+    def process_database_with_llm(self, introspector: DatabaseIntrospector, tables: List[str] = None) -> Dict[str, Any]:
         """Process database with LLM enhancements"""
         
         logger.info("Starting LLM-enhanced database processing...")
@@ -287,105 +290,137 @@ class LLMEnhancedCubeGenerator(EnhancedCubeGenerator):
         
         return summary
 
-def main():
-    """Main function for LLM-enhanced generator"""
-    parser = argparse.ArgumentParser(
-        description="LLM-Enhanced PostgreSQL to Cube.dev YAML Generator",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  # Basic usage with LLM descriptions
-  python llm_enhanced_generator.py --host localhost --database mydb --username user --password pass
-  
-  # Disable LLM and use basic descriptions
-  python llm_enhanced_generator.py --host localhost --database mydb --username user --password pass --no-llm
-  
-  # Use specific LLM model
-  python llm_enhanced_generator.py --host localhost --database mydb --username user --password pass --llm-model gpt-4
-        """
-    )
+def generate_llm_enhanced_cubes_from_engine(
+    engine,  # SQLAlchemy Engine instance
+    output_dir: str = "model", 
+    schema: str = "public", 
+    tables: Optional[List[str]] = None,
+    generate_views: bool = False,
+    openai_api_key: Optional[str] = None,
+    model_name: str = "gpt-3.5-turbo"
+):
+    """
+    Generate LLM-enhanced Cube.dev YAML files from a user-provided SQLAlchemy engine.
     
-    # Database connection arguments
-    parser.add_argument("--host", required=True, help="PostgreSQL host")
-    parser.add_argument("--port", type=int, default=5432, help="PostgreSQL port")
-    parser.add_argument("--database", required=True, help="Database name")
-    parser.add_argument("--username", required=True, help="Database username")
-    parser.add_argument("--password", required=True, help="Database password")
-    parser.add_argument("--schema", default="public", help="Database schema")
+    This is the recommended approach for database-agnostic usage with LLM enhancements.
     
-    # Generation options
-    parser.add_argument("--output-dir", default="model_llm", help="Output directory for YAML files")
-    parser.add_argument("--tables", nargs="*", help="Specific tables to process")
-    parser.add_argument("--domain", default="ecommerce", help="Domain for templates")
-    
-    # LLM options
-    parser.add_argument("--no-llm", action="store_true", help="Disable LLM descriptions")
-    parser.add_argument("--llm-model", default="gpt-3.5-turbo", help="LLM model to use")
-    
-    args = parser.parse_args()
-    
-    # Check for OpenAI API key
-    if not args.no_llm and not os.getenv("OPENAI_API_KEY"):
-        logger.warning("No OPENAI_API_KEY found in environment. Using basic descriptions.")
-        args.no_llm = True
-    
-    # Create database config
+    Args:
+        engine: Pre-configured SQLAlchemy Engine instance
+        output_dir: Directory to save generated YAML files
+        schema: Database schema name (ignored for SQLite)
+        tables: Specific tables to process (None = all tables)
+        generate_views: Whether to generate view definitions
+        openai_api_key: OpenAI API key (or None to use environment variable)
+        model_name: LLM model to use for descriptions
+        
+    Returns:
+        Dictionary with generation statistics
+        
+    Example:
+        from sqlalchemy import create_engine
+        
+        # User provides their own engine
+        engine = create_engine("postgresql://user:pass@localhost/db")
+        
+        # Generate LLM-enhanced cubes
+        stats = generate_llm_enhanced_cubes_from_engine(
+            engine=engine,
+            output_dir="my_llm_cubes",
+            generate_views=True,
+            openai_api_key="your-api-key"
+        )
+    """
+    # Create config with user-provided engine
     db_config = DatabaseConfig(
-        host=args.host,
-        port=args.port,
-        database=args.database,
-        username=args.username,
-        password=args.password,
-        schema=args.schema
+        engine_instance=engine,
+        schema=schema
     )
     
-    # Initialize components
-    introspector = PostgreSQLIntrospector(db_config)
+    # Initialize introspector
+    introspector = DatabaseIntrospector(db_config)
     
     if not introspector.connect():
-        logger.error("Failed to connect to database")
-        sys.exit(1)
+        raise RuntimeError("Failed to connect to database using provided engine")
     
+    # Set OpenAI API key in environment if provided
+    if openai_api_key:
+        os.environ["OPENAI_API_KEY"] = openai_api_key
+    
+    # Initialize LLM-enhanced generator
     generator = LLMEnhancedCubeGenerator(
-        output_dir=args.output_dir,
-        config_profile=args.domain,
-        enable_llm=not args.no_llm,
-        llm_model=args.llm_model
+        output_dir=output_dir,
+        enable_llm=openai_api_key is not None,
+        llm_model=model_name
     )
     
-    # Process database
-    try:
-        summary = generator.process_database_with_llm(introspector, args.tables)
-        
-        # Print summary
-        print("\n" + "="*60)
-        print("LLM-ENHANCED GENERATION SUMMARY")
-        print("="*60)
-        print(f"Total files generated: {summary['total_files']}")
-        print(f"Cubes: {summary['stats']['cubes']}")
-        print(f"Views: {summary['stats']['views']}")
-        print(f"LLM Enhanced: {summary['llm_enhanced']}")
-        print(f"Fact tables: {summary['stats']['fact_tables']}")
-        print(f"Dimension tables: {summary['stats']['dimension_tables']}")
-        print(f"Junction tables: {summary['stats']['junction_tables']}")
-        print(f"Errors: {summary['stats']['errors']}")
-        print(f"Output directory: {summary['output_directory']}")
-        
-        if summary['errors']:
-            print(f"\nErrors encountered:")
-            for error in summary['errors'][:3]:
-                print(f"  - {error}")
-            if len(summary['errors']) > 3:
-                print(f"  ... and {len(summary['errors']) - 3} more")
-        
-        print(f"\nNext steps:")
-        print("1. Review generated files with enhanced descriptions")
-        print("2. Copy files to your Cube.dev project")
-        print("3. Compare with basic descriptions to see improvements")
-        
-    except Exception as e:
-        logger.error(f"Generation failed: {e}")
-        sys.exit(1)
+    # Get tables to process
+    if tables is None:
+        tables = introspector.get_tables(schema)
+    
+    logger.info(f"Processing {len(tables)} tables with LLM enhancements...")
+    
+    stats = {
+        'cubes_generated': 0,
+        'views_generated': 0,
+        'fact_tables': 0,
+        'dimension_tables': 0,
+        'llm_descriptions': 0,
+        'errors': []
+    }
+    
+    cube_names = []
+    generated_cubes = []
+    
+    # Process each table
+    for table_name in tables:
+        try:
+            logger.info(f"Processing table: {table_name}")
+            
+            # Introspect table
+            table_info = introspector.introspect_table(table_name, schema)
+            
+            # Update stats based on table type
+            if table_info.table_type == 'fact':
+                stats['fact_tables'] += 1
+            elif table_info.table_type == 'dimension':
+                stats['dimension_tables'] += 1
+            
+            # Get sample data for LLM context
+            sample_data = introspector.get_sample_data(table_name, schema, limit=3)
+            
+            # Generate LLM-enhanced cube
+            cube = generator.generate_enhanced_cube_with_llm(table_info, sample_data)
+            
+            # Save cube YAML
+            filepath = generator.file_manager.save_cube_file(cube)
+            cube_names.append(cube['name'])
+            generated_cubes.append(cube)
+            stats['cubes_generated'] += 1
+            stats['llm_descriptions'] += 1  # Each cube gets LLM-enhanced descriptions
+            
+            logger.info(f"Generated LLM-enhanced cube for {table_name} (type: {table_info.table_type})")
+            
+        except Exception as e:
+            error_msg = f"Error processing table {table_name}: {e}"
+            logger.error(error_msg)
+            stats['errors'].append(error_msg)
+            continue
+    
+    # Generate views if requested
+    if generate_views and cube_names:
+        try:
+            # Generate domain-specific views using the existing method
+            views = generator.generate_domain_specific_views(generated_cubes)
+            for view in views:
+                generator.file_manager.save_view_file(view)
+                stats['views_generated'] += 1
+            
+        except Exception as e:
+            error_msg = f"Error generating views: {e}"
+            logger.error(error_msg)
+            stats['errors'].append(error_msg)
+    
+    logger.info(f"LLM-enhanced generation complete! Generated {stats['cubes_generated']} cubes and {stats['views_generated']} views in {output_dir}")
+    logger.info(f"LLM descriptions generated: {stats['llm_descriptions']}")
+    return stats
 
-if __name__ == "__main__":
-    main()

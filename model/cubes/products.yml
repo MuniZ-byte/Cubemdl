@@ -1,150 +1,169 @@
 cubes:
 - name: products
   sql_table: ecommerce.products
-  description: Data cube for Products analysis
+  description: The "products" data cube in the ecommerce database represents key attributes
+    of various products, such as their category, dimensions, weight, and descriptive
+    lengths, enabling analysis and optimization of product offerings and inventory
+    management.
   measures:
   - name: count
     type: count
-    description: Total number of records
+    description: count_records → "Total number of records in the products table"
   - name: count_distinct
     sql: product_id
     type: count_distinct
-    description: Count of unique records
+    description: count_distinct_product_id → "Number of unique products sold"
   - name: sum_product_name_length
     sql: product_name_length
     type: sum
-    description: Sum of product_name_length
-    format: number
+    description: '"Total length of product names in characters for all products."'
   - name: avg_product_name_length
     sql: product_name_length
     type: avg
-    description: Avg of product_name_length
-    format: number
+    description: '"Average length of product names in characters for products."'
   - name: min_product_name_length
     sql: product_name_length
     type: min
-    description: Min of product_name_length
-    format: number
+    description: min_product_name_length → "Shortest length of product names in characters"
   - name: max_product_name_length
     sql: product_name_length
     type: max
-    description: Max of product_name_length
-    format: number
+    description: max_product_name_length → "Maximum length of product names in characters"
   - name: sum_description_length
     sql: description_length
     type: sum
-    description: Sum of description_length
-    format: number
+    description: '"Total length of product descriptions in characters"'
   - name: avg_description_length
     sql: description_length
     type: avg
-    description: Avg of description_length
-    format: number
+    description: Average length of product descriptions in the default domain.
   - name: min_description_length
     sql: description_length
     type: min
-    description: Min of description_length
-    format: number
+    description: min_description_length → "Minimum length of product descriptions
+      in characters"
   - name: max_description_length
     sql: description_length
     type: max
-    description: Max of description_length
-    format: number
+    description: max_description_length → "Maximum length of product descriptions
+      in characters"
+  - name: sum_product_photos_qty
+    sql: product_photos_qty
+    type: sum
+    description: Total quantity of product photos uploaded.
+  - name: avg_product_photos_qty
+    sql: product_photos_qty
+    type: avg
+    description: Average number of photos per product in the products table.
+  - name: min_product_photos_qty
+    sql: product_photos_qty
+    type: min
+    description: 'min_product_photos_qty: "Minimum number of photos per product listed
+      on the platform."'
+  - name: max_product_photos_qty
+    sql: product_photos_qty
+    type: max
+    description: max_product_photos_qty → "Maximum number of photos per product in
+      the dataset"
   - name: sum_product_weight_g
     sql: product_weight_g
     type: sum
-    description: Sum of product_weight_g
-    format: number
+    description: Total weight of all products sold in grams.
   - name: avg_product_weight_g
     sql: product_weight_g
     type: avg
-    description: Avg of product_weight_g
-    format: number
+    description: '"Average weight of products in grams sold"'
   - name: min_product_weight_g
     sql: product_weight_g
     type: min
-    description: Min of product_weight_g
-    format: number
+    description: '"Minimum weight of products in grams sold."'
   - name: max_product_weight_g
     sql: product_weight_g
     type: max
-    description: Max of product_weight_g
-    format: number
+    description: max_product_weight_g → "Maximum weight of products in grams"
+  - name: sum_product_lenght_cm
+    sql: product_lenght_cm
+    type: sum
+    description: Total length of products in centimeters in the dataset.
+  - name: avg_product_lenght_cm
+    sql: product_lenght_cm
+    type: avg
+    description: Average length of products in centimeters in the default domain.
+  - name: min_product_lenght_cm
+    sql: product_lenght_cm
+    type: min
+    description: '"Minimum length of products in centimeters in the default domain."'
+  - name: max_product_lenght_cm
+    sql: product_lenght_cm
+    type: max
+    description: '"Maximum length of products in centimeters in the default domain."'
   - name: sum_product_height_cm
     sql: product_height_cm
     type: sum
-    description: Sum of product_height_cm
-    format: number
+    description: '"Total height of products in centimeters sold"'
   - name: avg_product_height_cm
     sql: product_height_cm
     type: avg
-    description: Avg of product_height_cm
-    format: number
+    description: Average height of products in centimeters in the products table.
   - name: min_product_height_cm
     sql: product_height_cm
     type: min
-    description: Min of product_height_cm
-    format: number
+    description: '"Minimum height of products in centimeters in the product table."'
   - name: max_product_height_cm
     sql: product_height_cm
     type: max
-    description: Max of product_height_cm
-    format: number
+    description: '"Maximum height of products in centimeters in the product table."'
   - name: sum_product_width_cm
     sql: product_width_cm
     type: sum
-    description: Sum of product_width_cm
-    format: number
+    description: Total width of products in centimeters sold.
   - name: avg_product_width_cm
     sql: product_width_cm
     type: avg
-    description: Avg of product_width_cm
-    format: number
+    description: Average width of products in centimeters.
   - name: min_product_width_cm
     sql: product_width_cm
     type: min
-    description: Min of product_width_cm
-    format: number
+    description: '"Minimum width of products in centimeters in default domain."'
   - name: max_product_width_cm
     sql: product_width_cm
     type: max
-    description: Max of product_width_cm
-    format: number
+    description: '"Maximum width of products in centimeters in default domain."'
   dimensions:
   - name: product_id
     sql: product_id
     type: string
-    description: Product Id dimension
+    description: '"Unique product identifier"'
     primary_key: true
   - name: product_category_name
     sql: product_category_name
     type: string
-    description: Product Category Name dimension
+    description: '"Category of the product"'
   - name: product_name_length
     sql: product_name_length
     type: number
-    description: Product Name Length dimension
+    description: Length of product name in characters.
   - name: description_length
     sql: description_length
     type: number
-    description: Description Length dimension
+    description: '"Length of product description in characters"'
   - name: product_photos_qty
     sql: product_photos_qty
     type: number
-    description: Product Photos Qty dimension
+    description: '"Number of photos for each product listing"'
   - name: product_weight_g
     sql: product_weight_g
     type: number
-    description: Product Weight G dimension
+    description: '"Weight of product in grams"'
   - name: product_lenght_cm
     sql: product_lenght_cm
     type: number
-    description: Product Lenght Cm dimension
+    description: '"Product length in centimeters"'
   - name: product_height_cm
     sql: product_height_cm
     type: number
-    description: Product Height Cm dimension
+    description: '"Height of product in centimeters"'
   - name: product_width_cm
     sql: product_width_cm
     type: number
-    description: Product Width Cm dimension
+    description: '"Width of the product in centimeters"'

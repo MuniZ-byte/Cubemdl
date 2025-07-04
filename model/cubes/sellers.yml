@@ -1,33 +1,36 @@
 cubes:
 - name: sellers
   sql_table: ecommerce.sellers
-  description: Data cube for Sellers analysis
+  description: The "sellers" data cube in the ecommerce database represents the geographical
+    locations and details of sellers, enabling analysis of seller distribution and
+    performance across different zip codes, cities, and states for strategic business
+    decision-making.
   measures:
   - name: count
     type: count
-    description: Total number of records
+    description: count_sellers → "Total number of sellers in the database"
   - name: count_distinct
     sql: seller_id
     type: count_distinct
-    description: Count of unique records
+    description: count_distinct_seller_id → "Number of unique sellers in the dataset"
   dimensions:
   - name: seller_id
     sql: seller_id
     type: string
-    description: Seller Id dimension
+    description: '"Seller identifier for tracking and referencing"'
     primary_key: true
   - name: seller_zip_code_prefix
     sql: seller_zip_code_prefix
     type: string
-    description: Seller Zip Code Prefix dimension
+    description: '"Prefix of seller''s zip code"'
   - name: seller_city
     sql: seller_city
     type: string
-    description: Seller City dimension
+    description: City where the seller is located.
   - name: seller_state
     sql: seller_state
     type: string
-    description: Seller State dimension
+    description: '"State where seller is located"'
   segments:
   - name: active
     sql: '{CUBE}.seller_state = ''active'''

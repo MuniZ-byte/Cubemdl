@@ -1,37 +1,39 @@
 cubes:
 - name: customers
   sql_table: ecommerce.customers
-  description: Data cube for Customers analysis
+  description: This data cube represents customer information in an ecommerce database,
+    enabling analysis of customer demographics and behavior to optimize marketing
+    strategies and enhance customer experience.
   measures:
   - name: count
     type: count
-    description: Total number of records
+    description: count_customers → "Total number of customer records in the database"
   - name: count_distinct
     sql: customer_id
     type: count_distinct
-    description: Count of unique records
+    description: 'count_distinct_customer_id: "Total unique customers in the dataset"'
   dimensions:
   - name: customer_id
     sql: customer_id
     type: string
-    description: Customer Id dimension
+    description: customer_id → "Unique customer identifier"
     primary_key: true
   - name: customer_unique_id
     sql: customer_unique_id
     type: string
-    description: Customer Unique Id dimension
+    description: '"Unique identifier for each customer"'
   - name: customer_zip_code_prefix
     sql: customer_zip_code_prefix
     type: string
-    description: Customer Zip Code Prefix dimension
+    description: '"Customer location zip code prefix"'
   - name: customer_city
     sql: customer_city
     type: string
-    description: Customer City dimension
+    description: Customer's city location.
   - name: customer_state
     sql: customer_state
     type: string
-    description: Customer State dimension
+    description: '"State where customer is located"'
   segments:
   - name: active
     sql: '{CUBE}.customer_state = ''active'''

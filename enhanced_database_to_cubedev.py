@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
-Enhanced PostgreSQL Database Schema to Cube.dev YAML Data Model Generator
+Enhanced Universal Database Schema to Cube.dev YAML Data Model Generator
 
 This enhanced version uses configuration-driven generation with better
 table classification, relationship detection, and domain-specific templates.
+
+Supports multiple database engines through SQLAlchemy:
+- PostgreSQL, SQLite, MySQL, Microsoft SQL Server
 """
 
 import os
@@ -26,7 +29,7 @@ from cubedev_utils import (
     CubeDevUtils, YAMLFormatter, DatabaseAnalyzer, 
     FileManager, validate_cube_definition, validate_view_definition
 )
-from postgres_to_cubedev import PostgreSQLIntrospector, DatabaseConfig, TableInfo
+from database_to_cubedev import DatabaseIntrospector, DatabaseConfig, TableInfo
 
 # Configure logging
 logging.basicConfig(
@@ -527,7 +530,7 @@ class EnhancedCubeGenerator:
         
         return view
     
-    def process_database(self, introspector: PostgreSQLIntrospector, tables: List[str] = None) -> Dict[str, Any]:
+    def process_database(self, introspector: DatabaseIntrospector, tables: List[str] = None) -> Dict[str, Any]:
         """Process entire database and generate all YAML files"""
         
         logger.info("Starting enhanced database processing...")
@@ -620,136 +623,121 @@ class EnhancedCubeGenerator:
         
         return summary
 
-def main():
-    """Enhanced main function with additional features"""
-    parser = argparse.ArgumentParser(
-        description="Enhanced PostgreSQL to Cube.dev YAML Generator",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  # Basic usage
-  python enhanced_postgres_to_cubedev.py --host localhost --database mydb --username user --password pass
-  
-  # With specific tables and domain
-  python enhanced_postgres_to_cubedev.py --host localhost --database mydb --username user --password pass \\
-    --tables orders customers products --domain ecommerce
-  
-  # Using configuration profile
-  python enhanced_postgres_to_cubedev.py --config-profile production --tables orders
-        """
+def generate_enhanced_cubes_from_engine(
+    engine,  # SQLAlchemy Engine instance
+    output_dir: str = "model", 
+    schema: str = "public", 
+    tables: Optional[List[str]] = None,
+    generate_views: bool = False
+):
+    """
+    Generate enhanced Cube.dev YAML files from a user-provided SQLAlchemy engine.
+    
+    This is the recommended approach for database-agnostic usage with enhanced features.
+    
+    Args:
+        engine: Pre-configured SQLAlchemy Engine instance
+        output_dir: Directory to save generated YAML files
+        schema: Database schema name (ignored for SQLite)
+        tables: Specific tables to process (None = all tables)
+        generate_views: Whether to generate view definitions
+        
+    Returns:
+        Dictionary with generation statistics
+        
+    Example:
+        from sqlalchemy import create_engine
+        
+        # User provides their own engine
+        engine = create_engine("postgresql://user:pass@localhost/db")
+        
+        # Generate enhanced cubes
+        stats = generate_enhanced_cubes_from_engine(
+            engine=engine,
+            output_dir="my_enhanced_cubes",
+            generate_views=True
+        )
+    """
+    # Create config with user-provided engine
+    db_config = DatabaseConfig(
+        engine_instance=engine,
+        schema=schema
     )
     
-    # Database connection arguments
-    parser.add_argument("--host", help="PostgreSQL host")
-    parser.add_argument("--port", type=int, default=5432, help="PostgreSQL port")
-    parser.add_argument("--database", help="Database name")
-    parser.add_argument("--username", help="Database username")
-    parser.add_argument("--password", help="Database password")
-    parser.add_argument("--schema", default="public", help="Database schema")
-    
-    # Configuration arguments
-    parser.add_argument("--config-profile", default="default", 
-                       choices=list(DATABASE_CONFIGS.keys()) + ["default"],
-                       help="Database configuration profile")
-    
-    # Generation options
-    parser.add_argument("--output-dir", default="model", help="Output directory for YAML files")
-    parser.add_argument("--tables", nargs="*", help="Specific tables to process (default: all)")
-    parser.add_argument("--domain", choices=list(DOMAIN_TEMPLATES.keys()),
-                       help="Domain for specialized templates")
-    parser.add_argument("--backup-existing", action="store_true", 
-                       help="Backup existing files before generation")
-    
-    # Output options
-    parser.add_argument("--validate-output", action="store_true", 
-                       help="Validate generated YAML files")
-    parser.add_argument("--generate-summary", action="store_true", 
-                       help="Generate detailed summary report")
-    parser.add_argument("--dry-run", action="store_true", 
-                       help="Show what would be generated without creating files")
-    
-    args = parser.parse_args()
-    
-    # Use configuration profile if individual params not provided
-    if args.config_profile != "default" and args.config_profile in DATABASE_CONFIGS:
-        profile_config = DATABASE_CONFIGS[args.config_profile]
-        
-        db_config = DatabaseConfig(
-            host=args.host or profile_config['host'],
-            port=args.port or profile_config['port'],
-            database=args.database or profile_config['database'],
-            username=args.username or profile_config['username'],
-            password=args.password or profile_config['password'],
-            schema=args.schema or profile_config['schema']
-        )
-    else:
-        # Require individual parameters
-        if not all([args.host, args.database, args.username, args.password]):
-            parser.error("Database connection parameters are required")
-        
-        db_config = DatabaseConfig(
-            host=args.host,
-            port=args.port,
-            database=args.database,
-            username=args.username,
-            password=args.password,
-            schema=args.schema
-        )
-    
-    # Initialize components
-    introspector = PostgreSQLIntrospector(db_config)
+    # Initialize introspector
+    introspector = DatabaseIntrospector(db_config)
     
     if not introspector.connect():
-        logger.error("Failed to connect to database")
-        sys.exit(1)
+        raise RuntimeError("Failed to connect to database using provided engine")
     
-    generator = EnhancedCubeGenerator(args.output_dir, args.config_profile)
+    # Initialize enhanced generator
+    generator = EnhancedCubeGenerator(output_dir)
     
-    # Backup existing files if requested
-    if args.backup_existing:
-        generator.file_manager.backup_existing_files()
+    # Get tables to process
+    if tables is None:
+        tables = introspector.get_tables(schema)
     
-    # Process database
-    try:
-        summary = generator.process_database(introspector, args.tables)
-        
-        # Print summary
-        print("\n" + "="*50)
-        print("GENERATION SUMMARY")
-        print("="*50)
-        print(f"Total files generated: {summary['total_files']}")
-        print(f"Cubes: {summary['stats']['cubes']}")
-        print(f"Views: {summary['stats']['views']}")
-        print(f"Fact tables: {summary['stats']['fact_tables']}")
-        print(f"Dimension tables: {summary['stats']['dimension_tables']}")
-        print(f"Junction tables: {summary['stats']['junction_tables']}")
-        print(f"Errors: {summary['stats']['errors']}")
-        print(f"Output directory: {summary['output_directory']}")
-        
-        if summary['errors']:
-            print(f"\nErrors encountered:")
-            for error in summary['errors'][:5]:  # Show first 5 errors
-                print(f"  - {error}")
-            if len(summary['errors']) > 5:
-                print(f"  ... and {len(summary['errors']) - 5} more")
-        
-        print(f"\nIndex file created: {summary['index_file']}")
-        print("\nNext steps:")
-        print("1. Review generated files in the output directory")
-        print("2. Copy files to your Cube.dev project")
-        print("3. Update database connection in cube.js")
-        print("4. Run 'cube validate' to check configuration")
-        
-        # Generate detailed summary if requested
-        if args.generate_summary:
-            summary_file = Path(args.output_dir) / "generation_summary.json"
-            with open(summary_file, 'w') as f:
-                json.dump(summary, f, indent=2)
-            print(f"Detailed summary saved to: {summary_file}")
-        
-    except Exception as e:
-        logger.error(f"Generation failed: {e}")
-        sys.exit(1)
+    logger.info(f"Processing {len(tables)} tables with enhanced features...")
+    
+    stats = {
+        'cubes_generated': 0,
+        'views_generated': 0,
+        'fact_tables': 0,
+        'dimension_tables': 0,
+        'lookup_tables': 0,
+        'errors': []
+    }
+    
+    cube_names = []
+    table_analysis = {}
+    
+    # Process each table
+    for table_name in tables:
+        try:
+            logger.info(f"Processing table: {table_name}")
+            
+            # Introspect table
+            table_info = introspector.introspect_table(table_name, schema)
+            table_analysis[table_name] = table_info
+            
+            # Update stats based on table type
+            if table_info.table_type == 'fact':
+                stats['fact_tables'] += 1
+            elif table_info.table_type == 'dimension':
+                stats['dimension_tables'] += 1
+            else:
+                stats['lookup_tables'] += 1
+            
+            # Generate enhanced cube
+            cube = generator.generate_enhanced_cube_from_table(table_info)
+            
+            # Save cube YAML
+            generator.save_cube_yaml(cube)
+            cube_names.append(cube['name'])
+            stats['cubes_generated'] += 1
+            
+            logger.info(f"Generated enhanced cube for {table_name} (type: {table_info.table_type})")
+            
+        except Exception as e:
+            error_msg = f"Error processing table {table_name}: {e}"
+            logger.error(error_msg)
+            stats['errors'].append(error_msg)
+            continue
+    
+    # Generate enhanced views if requested
+    if generate_views and cube_names:
+        try:
+            # Generate relationship-aware views
+            views = generator.generate_enhanced_views(table_analysis, cube_names)
+            for view in views:
+                generator.save_view_yaml(view)
+                stats['views_generated'] += 1
+            
+        except Exception as e:
+            error_msg = f"Error generating enhanced views: {e}"
+            logger.error(error_msg)
+            stats['errors'].append(error_msg)
+    
+    logger.info(f"Enhanced generation complete! Generated {stats['cubes_generated']} cubes and {stats['views_generated']} views in {output_dir}")
+    return stats
 
-if __name__ == "__main__":
-    main()

@@ -1,78 +1,81 @@
 cubes:
 - name: order_items
   sql_table: ecommerce.order_items
-  description: Data cube for Order Items analysis
+  description: This data cube represents the order items within an ecommerce platform,
+    detailing the products purchased, associated sellers, pricing, and shipping information
+    for each order.
   measures:
   - name: count
     type: count
-    description: Total number of records
+    description: count → "Total number of records in the order_items table"
   - name: count_distinct
     sql: order_id
     type: count_distinct
-    description: Count of unique records
+    description: 'count_distinct_order_id: "Total unique order IDs in the order_items
+      table"'
   - name: sum_price
     sql: price
     type: sum
-    description: Sum of price
+    description: 'sum_price: Total monetary value of all items in orders.'
     format: currency
   - name: avg_price
     sql: price
     type: avg
-    description: Avg of price
+    description: '"Average price of items sold in orders"'
     format: currency
   - name: min_price
     sql: price
     type: min
-    description: Min of price
+    description: '"Lowest price of products in orders."'
     format: currency
   - name: max_price
     sql: price
     type: max
-    description: Max of price
+    description: max_price → "Highest price of an item sold"
     format: currency
   - name: sum_freight_value
     sql: freight_value
     type: sum
-    description: Sum of freight_value
+    description: Total monetary value of shipping costs for all orders.
     format: currency
   - name: avg_freight_value
     sql: freight_value
     type: avg
-    description: Avg of freight_value
+    description: Average value of freight cost per order in default domain.
     format: currency
   - name: min_freight_value
     sql: freight_value
     type: min
-    description: Min of freight_value
+    description: Minimum freight cost for orders in the dataset.
     format: currency
   - name: max_freight_value
     sql: freight_value
     type: max
-    description: Max of freight_value
+    description: max_freight_value → "Highest shipping cost for individual orders"
     format: currency
   dimensions:
   - name: order_id
     sql: order_id
     type: string
-    description: Order Id dimension
+    description: '"Identifier for each order"'
     primary_key: true
   - name: order_item_id
     sql: order_item_id
     type: number
-    description: Order Item Id dimension
+    description: '"Unique identifier for each order item"'
     primary_key: true
   - name: product_id
     sql: product_id
     type: string
-    description: Product Id dimension
+    description: '"Identifier for each product in the order"'
   - name: seller_id
     sql: seller_id
     type: string
-    description: Seller Id dimension
+    description: '"Seller identification code for order items"'
   - name: shipping_limit_date
     sql: shipping_limit_date
     type: time
-    description: Shipping Limit Date dimension
+    description: '"Deadline for shipping orders"'
     granularities:
     - name: hour
       interval: 1 hour
@@ -89,11 +92,11 @@ cubes:
   - name: price
     sql: price
     type: number
-    description: Price dimension
+    description: '"Price of an item in the order"'
   - name: freight_value
     sql: freight_value
     type: number
-    description: Freight Value dimension
+    description: Shipping cost for each order item.
   joins:
   - name: orders
     relationship: many_to_one

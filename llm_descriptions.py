@@ -309,29 +309,3 @@ class EnhancedDescriptionService:
         else:
             return f"{measure_type.title()} of {formatted_name.lower()}"
 
-# Example usage and testing
-if __name__ == "__main__":
-    # Test with sample data
-    sample_context = TableContext(
-        table_name="sellers",
-        table_type="dimension",
-        schema="ecommerce",
-        columns=[
-            {"name": "seller_id", "type": "string"},
-            {"name": "seller_city", "type": "string"},
-            {"name": "seller_state", "type": "string"}
-        ],
-        sample_data=[
-            {"seller_id": "SEL001", "seller_city": "São Paulo", "seller_state": "SP"},
-            {"seller_id": "SEL002", "seller_city": "Rio de Janeiro", "seller_state": "RJ"}
-        ],
-        foreign_keys=[],
-        domain="ecommerce"
-    )
-    
-    # Test service
-    service = EnhancedDescriptionService(enable_llm=True)
-    
-    print("Cube description:", service.describe_cube(sample_context))
-    print("Dimension description:", service.describe_dimension("seller_city", "string", sample_context))
-    print("Measure description:", service.describe_measure("count_sellers", "count", "seller_id", sample_context))

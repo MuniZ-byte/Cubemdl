@@ -1,33 +1,36 @@
 cubes:
 - name: orders
   sql_table: ecommerce.orders
-  description: Data cube for Orders analysis
+  description: The "orders" data cube in the ecommerce database represents the lifecycle
+    of customer orders, including purchase timestamps, approval status, delivery dates,
+    and estimated delivery times, providing insights into order fulfillment efficiency
+    and customer satisfaction.
   measures:
   - name: count
     type: count
-    description: Total number of records
+    description: count_records → "Total number of records in the orders table"
   - name: count_distinct
     sql: order_id
     type: count_distinct
-    description: Count of unique records
+    description: count_distinct_order_id → "Total unique orders placed"
   dimensions:
   - name: order_id
     sql: order_id
     type: string
-    description: Order Id dimension
+    description: '"Unique identifier for each order"'
     primary_key: true
   - name: customer_id
     sql: customer_id
     type: string
-    description: Customer Id dimension
+    description: '"Unique identifier for each customer"'
   - name: order_status
     sql: order_status
     type: string
-    description: Order Status dimension
+    description: Order fulfillment status of an order.
   - name: order_purchase_timestamp
     sql: order_purchase_timestamp
     type: time
-    description: Order Purchase Timestamp dimension
+    description: '"Timestamp when order was purchased"'
     granularities:
     - &id001
       name: hour
@@ -50,7 +53,7 @@ cubes:
   - name: order_approved_at
     sql: order_approved_at
     type: time
-    description: Order Approved At dimension
+    description: '"Timestamp when order was approved"'
     granularities:
     - *id001
     - *id002
@@ -61,7 +64,7 @@ cubes:
   - name: order_delivered_carrier_date
     sql: order_delivered_carrier_date
     type: time
-    description: Order Delivered Carrier Date dimension
+    description: '"Date order delivered by carrier"'
     granularities:
     - *id001
     - *id002
@@ -72,7 +75,7 @@ cubes:
   - name: order_delivered_customer_date
     sql: order_delivered_customer_date
     type: time
-    description: Order Delivered Customer Date dimension
+    description: '"Date when order was delivered to customer"'
     granularities:
     - *id001
     - *id002
@@ -83,7 +86,7 @@ cubes:
   - name: order_estimated_delivery_date
     sql: order_estimated_delivery_date
     type: time
-    description: Order Estimated Delivery Date dimension
+    description: '"Estimated delivery date for orders"'
     granularities:
     - *id001
     - *id002

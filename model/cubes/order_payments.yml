@@ -1,58 +1,77 @@
 cubes:
 - name: order_payments
   sql_table: ecommerce.order_payments
-  description: Data cube for Order Payments analysis
+  description: The "order_payments" data cube provides insights into the various payment
+    methods, installment plans, and payment values associated with orders in an ecommerce
+    platform, enabling analysis of customer payment preferences and purchase behavior.
   measures:
   - name: count
     type: count
-    description: Total number of records
+    description: count → "Total number of records in the order payments table"
   - name: count_distinct
     sql: order_id
     type: count_distinct
-    description: Count of unique records
+    description: count_distinct_order_id → "Total unique order IDs in payments table"
+  - name: sum_payment_installments
+    sql: payment_installments
+    type: sum
+    description: '"Total number of payment installments made for orders"'
+  - name: avg_payment_installments
+    sql: payment_installments
+    type: avg
+    description: '"Average number of payment installments per order"'
+  - name: min_payment_installments
+    sql: payment_installments
+    type: min
+    description: 'min_payment_installments: "Minimum number of payment installments
+      made per order."'
+  - name: max_payment_installments
+    sql: payment_installments
+    type: max
+    description: '"Maximum number of payment installments per order."'
   - name: sum_payment_value
     sql: payment_value
     type: sum
-    description: Sum of payment_value
+    description: '"Total value of payments made for orders"'
     format: currency
   - name: avg_payment_value
     sql: payment_value
     type: avg
-    description: Avg of payment_value
+    description: Average value of payments made per order in the default domain.
     format: currency
   - name: min_payment_value
     sql: payment_value
     type: min
-    description: Min of payment_value
+    description: Minumum payment value made by customers for orders in default domain.
     format: currency
   - name: max_payment_value
     sql: payment_value
     type: max
-    description: Max of payment_value
+    description: max_payment_value → "Highest payment amount made in orders"
     format: currency
   dimensions:
   - name: order_id
     sql: order_id
     type: string
-    description: Order Id dimension
+    description: '"Unique identifier for each order"'
     primary_key: true
   - name: payment_sequential
     sql: payment_sequential
     type: number
-    description: Payment Sequential dimension
+    description: Payment sequence number for order transactions.
     primary_key: true
   - name: payment_type
     sql: payment_type
     type: string
-    description: Payment Type dimension
+    description: Type of payment used for an order.
   - name: payment_installments
     sql: payment_installments
     type: number
-    description: Payment Installments dimension
+    description: Number of payment installments for an order.
   - name: payment_value
     sql: payment_value
     type: number
-    description: Payment Value dimension
+    description: Payment amount for an order.
   joins:
   - name: orders
     relationship: many_to_one

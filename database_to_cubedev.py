@@ -1,9 +1,23 @@
 #!/usr/bin/env python3
 """
-PostgreSQL Database Schema to Cube.dev YAML Data Model Generator
+Database-Agnostic Cube.dev YAML Data Model Generator
 
-This script connects to a PostgreSQL database, introspects the schema,
-and generates Cube.dev-compatible YAML files organized by data model type.
+This script generates Cube.dev-compatible YAML files from any SQLAlchemy-supported database.
+Users provide their own pre-configured SQLAlchemy engine - no hardcoded connection logic!
+
+Usage:
+    from sqlalchemy import create_engine
+    from database_to_cubedev import generate_cubes_from_engine
+    
+    # User provides their own engine
+    engine = create_engine("postgresql://user:pass@localhost/db")
+    
+    # Generate cubes
+    cube_names = generate_cubes_from_engine(
+        engine=engine,
+        output_dir="my_cubes",
+        generate_views=True
+    )
 """
 
 import os
@@ -27,13 +41,14 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class DatabaseConfig:
-    """Database connection configuration"""
-    host: str
-    port: int
-    database: str
-    username: str
-    password: str
-    schema: str = 'public'
+    """Database connection configuration - only accepts user-provided SQLAlchemy engine for true database-agnosticism"""
+    engine_instance: Engine  # User must provide a pre-configured SQLAlchemy Engine
+    schema: str = 'public'  # Default schema (ignored for SQLite)
+    
+    def __post_init__(self):
+        """Validate configuration after initialization"""
+        if not self.engine_instance:
+            raise ValueError("engine_instance is required - please provide a pre-configured SQLAlchemy Engine")
 
 @dataclass
 class TableInfo:
@@ -48,8 +63,8 @@ class TableInfo:
     is_dimension_table: bool = False
     table_type: str = 'unknown'
 
-class PostgreSQLIntrospector:
-    """Handles PostgreSQL database introspection"""
+class DatabaseIntrospector:
+    """Handles database introspection for multiple database engines"""
     
     def __init__(self, config: DatabaseConfig):
         self.config = config
@@ -57,15 +72,16 @@ class PostgreSQLIntrospector:
         self.metadata: Optional[MetaData] = None
         self.inspector = None
         
+    def get_engine(self) -> Engine:
+        """
+        Get the user-provided SQLAlchemy engine - truly database-agnostic approach
+        """
+        return self.config.engine_instance
+    
     def connect(self) -> bool:
-        """Establish database connection"""
+        """Establish database connection using user-provided SQLAlchemy engine"""
         try:
-            connection_string = (
-                f"postgresql://{self.config.username}:{self.config.password}"
-                f"@{self.config.host}:{self.config.port}/{self.config.database}"
-            )
-            
-            self.engine = create_engine(connection_string)
+            self.engine = self.get_engine()
             self.inspector = inspect(self.engine)
             self.metadata = MetaData()
             
@@ -74,7 +90,7 @@ class PostgreSQLIntrospector:
                 from sqlalchemy import text
                 conn.execute(text("SELECT 1"))
                 
-            logger.info(f"Successfully connected to database: {self.config.database}")
+            logger.info(f"Successfully connected using user-provided engine: {self.engine.url}")
             return True
             
         except SQLAlchemyError as e:
@@ -84,7 +100,11 @@ class PostgreSQLIntrospector:
     def get_tables(self, schema: str = None) -> List[str]:
         """Get list of tables in the specified schema"""
         schema = schema or self.config.schema
-        return self.inspector.get_table_names(schema=schema)
+        try:
+            return self.inspector.get_table_names(schema=schema)
+        except TypeError:
+            # Some databases don't support schema parameter
+            return self.inspector.get_table_names()
     
     def introspect_table(self, table_name: str, schema: str = None) -> TableInfo:
         """Introspect a single table and return detailed information"""
@@ -92,22 +112,41 @@ class PostgreSQLIntrospector:
         
         # Get columns
         columns = []
-        for col in self.inspector.get_columns(table_name, schema=schema):
-            columns.append({
-                'name': col['name'],
-                'type': str(col['type']),
-                'nullable': col['nullable'],
-                'default': col.get('default'),
-                'autoincrement': col.get('autoincrement', False)
-            })
+        try:
+            for col in self.inspector.get_columns(table_name, schema=schema):
+                columns.append({
+                    'name': col['name'],
+                    'type': str(col['type']),
+                    'nullable': col['nullable'],
+                    'default': col.get('default'),
+                    'autoincrement': col.get('autoincrement', False)
+                })
+        except TypeError:
+            # Some databases don't support schema parameter
+            for col in self.inspector.get_columns(table_name):
+                columns.append({
+                    'name': col['name'],
+                    'type': str(col['type']),
+                    'nullable': col['nullable'],
+                    'default': col.get('default'),
+                    'autoincrement': col.get('autoincrement', False)
+                })
         
         # Get primary keys
-        pk_constraint = self.inspector.get_pk_constraint(table_name, schema=schema)
+        try:
+            pk_constraint = self.inspector.get_pk_constraint(table_name, schema=schema)
+        except TypeError:
+            pk_constraint = self.inspector.get_pk_constraint(table_name)
         primary_keys = pk_constraint.get('constrained_columns', [])
         
         # Get foreign keys
         foreign_keys = []
-        for fk in self.inspector.get_foreign_keys(table_name, schema=schema):
+        try:
+            fk_list = self.inspector.get_foreign_keys(table_name, schema=schema)
+        except TypeError:
+            fk_list = self.inspector.get_foreign_keys(table_name)
+            
+        for fk in fk_list:
             foreign_keys.append({
                 'constrained_columns': fk['constrained_columns'],
                 'referred_table': fk['referred_table'],
@@ -117,7 +156,12 @@ class PostgreSQLIntrospector:
         
         # Get indexes
         indexes = []
-        for idx in self.inspector.get_indexes(table_name, schema=schema):
+        try:
+            idx_list = self.inspector.get_indexes(table_name, schema=schema)
+        except TypeError:
+            idx_list = self.inspector.get_indexes(table_name)
+            
+        for idx in idx_list:
             indexes.append({
                 'name': idx['name'],
                 'columns': idx['column_names'],
@@ -126,7 +170,7 @@ class PostgreSQLIntrospector:
         
         table_info = TableInfo(
             name=table_name,
-            schema=schema,
+            schema=schema or 'default',
             columns=columns,
             primary_keys=primary_keys,
             foreign_keys=foreign_keys,
@@ -192,11 +236,23 @@ class PostgreSQLIntrospector:
     
     def get_sample_data(self, table_name: str, schema: str = None, limit: int = 5) -> List[Dict]:
         """Get sample data from table for analysis"""
-        schema = schema or self.config.schema
         try:
             with self.engine.connect() as conn:
                 from sqlalchemy import text
-                result = conn.execute(text(f"SELECT * FROM {schema}.{table_name} LIMIT {limit}"))
+                
+                # Try schema-qualified table name first, fallback to just table name
+                schema = schema or self.config.schema
+                if schema:
+                    table_ref = f"{schema}.{table_name}"
+                else:
+                    table_ref = table_name
+                
+                try:
+                    result = conn.execute(text(f"SELECT * FROM {table_ref} LIMIT {limit}"))
+                except Exception:
+                    # Fallback to just table name if schema-qualified fails
+                    result = conn.execute(text(f"SELECT * FROM {table_name} LIMIT {limit}"))
+                    
                 return [dict(row._mapping) for row in result]
         except Exception as e:
             logger.warning(f"Could not fetch sample data from {table_name}: {e}")
@@ -214,30 +270,58 @@ class CubeYAMLGenerator:
         self.cubes_dir.mkdir(parents=True, exist_ok=True)
         self.views_dir.mkdir(parents=True, exist_ok=True)
         
-        # Column type mappings
+        # Universal column type mappings for different database engines
         self.type_mappings = {
+            # Numeric types
             'integer': 'number',
             'bigint': 'number',
             'smallint': 'number',
+            'tinyint': 'number',
             'decimal': 'number',
             'numeric': 'number',
             'real': 'number',
             'double precision': 'number',
+            'double': 'number',
             'float': 'number',
+            'money': 'number',
+            
+            # String types
             'varchar': 'string',
             'character varying': 'string',
             'text': 'string',
             'char': 'string',
             'character': 'string',
+            'nvarchar': 'string',
+            'nchar': 'string',
+            'longtext': 'string',
+            'mediumtext': 'string',
+            'tinytext': 'string',
+            
+            # Date/Time types
             'timestamp': 'time',
             'timestamp without time zone': 'time',
             'timestamp with time zone': 'time',
+            'datetime': 'time',
+            'datetime2': 'time',
+            'smalldatetime': 'time',
             'date': 'time',
             'time': 'time',
+            
+            # Boolean types
             'boolean': 'boolean',
+            'bool': 'boolean',
+            'bit': 'boolean',
+            
+            # Other types (treated as strings)
             'uuid': 'string',
+            'guid': 'string',
             'json': 'string',
-            'jsonb': 'string'
+            'jsonb': 'string',
+            'xml': 'string',
+            'blob': 'string',
+            'clob': 'string',
+            'binary': 'string',
+            'varbinary': 'string'
         }
         
         self.common_measures = {
@@ -266,10 +350,16 @@ class CubeYAMLGenerator:
         
         cube_name = table_info.name
         
+        # Build table reference based on schema
+        if table_info.schema and table_info.schema not in ['main', 'public']:
+            sql_table = f"{table_info.schema}.{table_info.name}"
+        else:
+            sql_table = table_info.name
+        
         # Base cube structure
         cube = {
             'name': cube_name,
-            'sql_table': f"{table_info.schema}.{table_info.name}",
+            'sql_table': sql_table,
             'description': f"Generated cube for {table_info.name} table"
         }
         
@@ -413,17 +503,24 @@ class CubeYAMLGenerator:
             
             # Active/status segments
             if col_name in ['status', 'state', 'is_active', 'active']:
-                segments.append({
-                    'name': 'active',
-                    'sql': f"{{CUBE}}.{col['name']} = 'active'",
-                    'description': "Active records only"
-                })
+                segments.extend([
+                    {
+                        'name': 'active',
+                        'sql': f"{{CUBE}}.{col['name']} = 'active'",
+                        'description': "Active records only"
+                    },
+                    {
+                        'name': 'inactive',
+                        'sql': f"{{CUBE}}.{col['name']} = 'inactive'",
+                        'description': "Inactive records only"
+                    }
+                ])
             
-            # Date-based segments
-            if 'created_at' in col_name or 'timestamp' in col_name:
+            # Date-based segments (using more universal SQL)
+            if any(term in col_name for term in ['created_at', 'timestamp', 'date']):
                 segments.append({
                     'name': 'recent',
-                    'sql': f"{{CUBE}}.{col['name']} >= CURRENT_DATE - INTERVAL '30 days'",
+                    'sql': f"{{CUBE}}.{col['name']} >= DATE('now', '-30 days')",  # SQLite compatible
                     'description': "Records from last 30 days"
                 })
         
@@ -519,46 +616,59 @@ class CubeYAMLGenerator:
         logger.info(f"Generated view YAML: {filepath}")
         return str(filepath)
 
-def main():
-    """Main function to orchestrate the generation process"""
-    parser = argparse.ArgumentParser(description="Generate Cube.dev YAML from PostgreSQL schema")
-    parser.add_argument("--host", required=True, help="PostgreSQL host")
-    parser.add_argument("--port", type=int, default=5432, help="PostgreSQL port")
-    parser.add_argument("--database", required=True, help="Database name")
-    parser.add_argument("--username", required=True, help="Database username")
-    parser.add_argument("--password", required=True, help="Database password")
-    parser.add_argument("--schema", default="public", help="Database schema")
-    parser.add_argument("--output-dir", default="model", help="Output directory for YAML files")
-    parser.add_argument("--tables", nargs="*", help="Specific tables to process (default: all)")
-    parser.add_argument("--generate-views", action="store_true", help="Generate view definitions")
+def generate_cubes_from_engine(
+    engine: Engine, 
+    output_dir: str = "model", 
+    schema: str = "public", 
+    tables: Optional[List[str]] = None,
+    generate_views: bool = False
+) -> List[str]:
+    """
+    Generate Cube.dev YAML files from a user-provided SQLAlchemy engine.
     
-    args = parser.parse_args()
+    This is the recommended approach for database-agnostic usage.
     
-    # Create database config
+    Args:
+        engine: Pre-configured SQLAlchemy Engine instance
+        output_dir: Directory to save generated YAML files
+        schema: Database schema name (ignored for SQLite)
+        tables: Specific tables to process (None = all tables)
+        generate_views: Whether to generate view definitions
+        
+    Returns:
+        List of generated cube names
+        
+    Example:
+        from sqlalchemy import create_engine
+        
+        # User provides their own engine
+        engine = create_engine("postgresql://user:pass@localhost/db")
+        
+        # Generate cubes
+        cube_names = generate_cubes_from_engine(
+            engine=engine,
+            output_dir="my_cubes",
+            generate_views=True
+        )
+    """
+    # Create config with user-provided engine
     db_config = DatabaseConfig(
-        host=args.host,
-        port=args.port,
-        database=args.database,
-        username=args.username,
-        password=args.password,
-        schema=args.schema
+        engine_instance=engine,
+        schema=schema
     )
     
     # Initialize introspector
-    introspector = PostgreSQLIntrospector(db_config)
+    introspector = DatabaseIntrospector(db_config)
     
     if not introspector.connect():
-        logger.error("Failed to connect to database")
-        sys.exit(1)
+        raise RuntimeError("Failed to connect to database using provided engine")
     
     # Initialize YAML generator
-    generator = CubeYAMLGenerator(args.output_dir)
+    generator = CubeYAMLGenerator(output_dir)
     
     # Get tables to process
-    if args.tables:
-        tables = args.tables
-    else:
-        tables = introspector.get_tables(args.schema)
+    if tables is None:
+        tables = introspector.get_tables(schema)
     
     logger.info(f"Processing {len(tables)} tables...")
     
@@ -570,7 +680,7 @@ def main():
             logger.info(f"Processing table: {table_name}")
             
             # Introspect table
-            table_info = introspector.introspect_table(table_name, args.schema)
+            table_info = introspector.introspect_table(table_name, schema)
             
             # Generate cube
             cube = generator.generate_cube_from_table(table_info)
@@ -586,7 +696,7 @@ def main():
             continue
     
     # Generate views if requested
-    if args.generate_views and cube_names:
+    if generate_views and cube_names:
         try:
             # Generate main business metrics view
             view = generator.generate_view_from_cubes(cube_names, "business_metrics")
@@ -603,9 +713,6 @@ def main():
         except Exception as e:
             logger.error(f"Error generating views: {e}")
     
-    logger.info(f"Generation complete! Generated {len(cube_names)} cubes in {args.output_dir}")
-    logger.info(f"Cubes directory: {generator.cubes_dir}")
-    logger.info(f"Views directory: {generator.views_dir}")
+    logger.info(f"Generation complete! Generated {len(cube_names)} cubes in {output_dir}")
+    return cube_names
 
-if __name__ == "__main__":
-    main()

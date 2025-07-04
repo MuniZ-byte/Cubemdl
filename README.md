@@ -1,143 +1,125 @@
-# PostgreSQL to Cube.dev YAML Generator
+# LLM-Enhanced Database to Cube.dev Generator
 
-A powerful Python tool that connects to PostgreSQL databases, introspects the schema, and generates Cube.dev-compatible YAML files (cubes and views) following universal templates.
-
-## Features
-
-- **Database Introspection**: Automatically analyzes PostgreSQL schema structure
-- **Smart YAML Generation**: Creates cubes, views, measures, dimensions, and relationships
-- **Domain-Aware Logic**: Supports ecommerce, SaaS, finance, and other business domains
-- **LLM-Enhanced Descriptions**: Optional OpenAI integration for meaningful business descriptions
-- **Flexible Output**: Organizes files into cubes/ and views/ directories
+Generate Cube.dev models and views from your PostgreSQL database with AI-powered descriptions using OpenAI.
 
 ## Quick Start
 
-### Installation
-
+### 1. Install Dependencies
 ```bash
-# Install dependencies
 pip install -r requirements.txt
-
-# Configure database connection
-cp .env.example .env
-# Edit .env with your PostgreSQL connection details
 ```
 
-### Basic Usage
-
-```bash
-# Generate YAML files using environment variables
-python enhanced_postgres_to_cubedev.py --config-file .env --domain ecommerce
-
-# Or specify connection parameters directly  
-python enhanced_postgres_to_cubedev.py \
-  --host localhost \
-  --database mydb \
-  --username admin \
-  --password secret \
-  --schema public \
-  --domain ecommerce
-```
-
-### LLM-Enhanced Descriptions
-
-```bash
-# Set OpenAI API key for richer descriptions
-export OPENAI_API_KEY="your-api-key"
-
-# Run with LLM enhancement
-python llm_enhanced_generator.py --config-file .env --domain ecommerce
-```
-
-## Output Structure
-
-```
-model/
-├── cubes/
-│   ├── orders.yml
-│   ├── customers.yml
-│   └── products.yml
-├── views/
-│   ├── business_metrics.yml
-│   └── dimension_catalog.yml
-└── README.md
-```
-
-## Core Files
-
-- `enhanced_postgres_to_cubedev.py` - Main generator with domain logic
-- `llm_enhanced_generator.py` - LLM-powered description generator  
-- `postgres_to_cubedev.py` - Core database introspection
-- `cubedev_config.py` - Configuration and templates
-- `cubedev_utils.py` - Utility functions
-- `llm_descriptions.py` - LLM description service
-
-## Configuration
-
-### Environment Variables (.env)
-
-```bash
-CUBEJS_DB_HOST=your-postgres-host
-CUBEJS_DB_NAME=your-database
-CUBEJS_DB_USER=your-username
-CUBEJS_DB_PASS=your-password
+### 2. Configure Database Connection
+Edit `.env` file with your PostgreSQL credentials:
+```env
+# PostgreSQL Database Configuration
+CUBEJS_DB_HOST=your_host
 CUBEJS_DB_PORT=5432
-CUBEJS_DB_SCHEMA=public
+CUBEJS_DB_NAME=your_database
+CUBEJS_DB_USER=your_username
+CUBEJS_DB_PASS=your_password
+CUBEJS_DB_SCHEMA=your_schema
 
-# Optional: OpenAI API key for enhanced descriptions
-OPENAI_API_KEY=your-openai-key
+# OpenAI API Key for LLM descriptions
+OPENAI_API_KEY=your_openai_api_key
 ```
 
-### Supported Domains
-
-- `ecommerce` - Orders, products, customers, payments
-- `saas` - Users, subscriptions, features, usage  
-- `finance` - Transactions, accounts, portfolios
-- `generic` - Universal templates
-
-## Description Generation
-
-The tool generates descriptions in three ways:
-
-1. **Basic Templates** (default): Simple pattern-based descriptions
-2. **Enhanced Templates**: Smart pattern recognition with domain awareness
-3. **LLM-Generated**: OpenAI-powered business-friendly descriptions
-
-### Examples
-
-**Basic**: "Data cube for Sellers analysis"
-**Enhanced**: "Sellers master data and attributes"
-**LLM**: "Marketplace seller directory with geographic and contact information"
-
-## Usage Examples
-
-### Generate for Specific Tables
-
+### 3. Generate Models
 ```bash
-python enhanced_postgres_to_cubedev.py \
-  --config-file .env \
-  --tables orders customers products \
-  --domain ecommerce
+python3 example_usage.py
 ```
 
-### Custom Output Directory
+## What Gets Generated
 
-```bash
-python enhanced_postgres_to_cubedev.py \
-  --config-file .env \
-  --output-dir /path/to/cube-project/model
+- **Cube files** (`.yml`) for each database table
+- **View files** (`.yml`) that combine multiple cubes
+- **LLM-enhanced descriptions** for cubes, measures, and dimensions
+- Files saved in `model/cubes/` and `model/views/` directories
+
+## Customization
+
+### Generate Specific Tables Only
+Edit `example_usage.py` and change:
+```python
+tables=["users", "orders", "products"]  # Instead of None
 ```
 
-## Integration with Cube.dev
-
-1. Generate YAML files using this tool
-2. Copy output to your Cube.dev project's `model/` directory
-3. Start Cube.dev development server:
-
-```bash
-npm run dev
+### Use Different LLM Model
+```python
+model_name="gpt-4"  # Instead of "gpt-3.5-turbo"
 ```
 
-## License
+### Disable LLM Descriptions
+```python
+openai_api_key=None  # Will use fallback descriptions
+```
 
-MIT License - see LICENSE file for details.
+## Example Output
+
+Your PostgreSQL tables will be converted to Cube.dev YAML files like:
+```yaml
+cubes:
+- name: orders
+  sql_table: ecommerce.orders
+  description: "Order transactions containing customer purchase data..."
+  measures:
+  - name: count
+    type: count
+    description: "Total number of orders placed"
+  - name: total_amount
+    sql: amount
+    type: sum
+    description: "Total revenue from all orders"
+  dimensions:
+  - name: order_id
+    sql: order_id
+    type: string
+    description: "Unique identifier for each order"
+    primary_key: true
+```
+
+## Files Structure
+
+- `llm_database_generator.py` - Main generator with LLM integration
+- `enhanced_database_to_cubedev.py` - Enhanced cube generation logic
+- `database_to_cubedev.py` - Core database introspection
+- `llm_descriptions.py` - OpenAI integration for descriptions
+- `cubedev_config.py` - Configuration rules
+- `cubedev_utils.py` - Utility functions
+- `example_usage.py` - Simple usage example
+- `docker-compose.yml` - Docker setup (optional)
+
+## Troubleshooting
+
+1. **Database Connection Issues**: Verify credentials in `.env`
+2. **Permission Errors**: Ensure write access to `model/` directory
+3. **LLM Errors**: Check OpenAI API key and usage limits
+4. **Import Errors**: Run `pip install -r requirements.txt`
+
+## API Usage
+
+```python
+from sqlalchemy import create_engine
+from llm_database_generator import generate_llm_enhanced_cubes_from_engine
+
+# Create your database engine
+engine = create_engine("postgresql://user:pass@host:port/database")
+
+# Generate models with LLM descriptions
+stats = generate_llm_enhanced_cubes_from_engine(
+    engine=engine,
+    output_dir="model",
+    schema="your_schema",
+    generate_views=True,
+    openai_api_key="your-api-key"
+)
+
+print(f"Generated {stats['cubes_generated']} cubes and {stats['views_generated']} views")
+```
+
+## Next Steps
+
+1. Review generated files in `model/` directory
+2. Customize YAML files as needed
+3. Use with Cube.dev framework
+4. Re-run generator when schema changes
